@@ -23,15 +23,15 @@ The project is broken down into a series of checkpoints. There are four mandator
 2. 9% - Nov. 22, Checkpoint: Beat the baseline 1 (86% accuracy on the test set) by any margin.
 3. 20% - Dec. 2, Checkpoint: Beat the baseline 2 by any margin.
 4. 50% - By the final submission (Dec 5), implement (or download and adapt an implementation of) at least 4 of the following:
-..* A generative method (NB, HMMs, k-means clustering, GMMs, etc.)
-..* A discriminative method (logistic regression, decision trees, SVMs, etc.)
-..* An instance based method (kernel regression, k-nearest neighbors, etc.)
-..* Your own regularization method (other than the standard L0, L1 or L2 penalty)
-..* A semi-supervised dimensionality reduction of the data
+  - A generative method (NB, HMMs, k-means clustering, GMMs, etc.)
+  - A discriminative method (logistic regression, decision trees, SVMs, etc.)
+  - An instance based method (kernel regression, k-nearest neighbors, etc.)
+  - Your own regularization method (other than the standard L0, L1 or L2 penalty)
+  - A semi-supervised dimensionality reduction of the data
 5. 20% - Dec 10 Final report should be between 2 and 5 pages and should include:
-..* Results for each method you tried (try to use checkpoints to get test set accuracy for each of your methods)
-..* Analysis of your experiments. What worked and what didn’t work? Why not? What did you do to try to fix it? Simply saying “I tried XX and it didn’t work” is not enough.
-..* An interesting visualization of one of your models. For instance, find the words that most correlate with the outcome.
+  - Results for each method you tried (try to use checkpoints to get test set accuracy for each of your methods)
+  - Analysis of your experiments. What worked and what didn’t work? Why not? What did you do to try to fix it? Simply saying “I tried XX and it didn’t work” is not enough.
+  - An interesting visualization of one of your models. For instance, find the words that most correlate with the outcome.
 
 - Extra credit - In the competition, placing well will increase your project grade. First place gets 10%, second 8%, third 7%, and the rest of the top 10 teams 5% extra added to the project grade.
 
