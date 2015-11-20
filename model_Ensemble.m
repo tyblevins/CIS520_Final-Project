@@ -23,7 +23,6 @@ yhat_NEG = yhat_ens;
 yhat_NEG(yhat_ens == 0) = -1;
 
 agreeMAT = yhat_NEG'*yhat_NEG;
-
 agreeMAT = abs(agreeMAT - length(yhat_knn))./2;
 
 figure(1)

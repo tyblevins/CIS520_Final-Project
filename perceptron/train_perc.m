@@ -53,29 +53,39 @@ words_test(:,notUsed_Idx) = [];
 
 disp(sprintf('Done Loading Data \n'))
 
-K = kernel_poly(words_train, words_train,1);
+%% FEATURE MANIPULATION STUFF
+% load('nnmfW_100.mat');
+% load('nnmfH_100.mat');
+% 
+% nnmf_feats_train = image_raw_train * H(1:10,:)';
+% nnmf_feats_test  = image_raw_test  * H(1:10,:)';
 
+    %KERNELS
+% K = kernel_poly(words_train, words_train,1);
 % Kgaus = kernel_gaussian(words_train, words_train,20);
 % K2 = kernel_poly(words_train, words_train,2);
-
-K_test = kernel_poly(words_train, words_test,1);
+% K_test = kernel_poly(words_train, words_test,1);
 % K2_test = kernel_poly(words_train, words_test,2);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %assign feats
 Y = gender_train;
-X = [words_train image_feats_train K];
-X_test = [words_test image_feats_test K_test];
+% X = [words_train image_feats_train K];
+% X_test = [words_test image_feats_test K_test];
+% 
+X = [words_train image_feats_train ];
+X_test = [words_test image_feats_test ];
 
-
-
-%mean center data
+%% standardize data
 X = X + 2e-13;
 avgX = mean(X,1);
-stdX = std(X)+2e-13;
-
-X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
-X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
-
+% stdX = std(X)+2e-13;
+% 
+% X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
+% X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
+X = (X)  -  repmat(avgX,size(X,1),1);
+X_test = ((X_test)  - repmat(avgX,size(X_test,1),1));
 %% train stuff
 %define x and y's from data above
 numTr = ceil(size(Y,1)*.70);
@@ -116,7 +126,7 @@ X_eval = X(evalIdx,:);
 
 % INSTRUCTIONS: Use the averaged_perceptron_train function to train model
 % using learning rate of 1.0
-numPasses = 3; %Do not change
+numPasses = 12; %Do not change
 
 %choose update func
 update_fnc = @(x,y,w) update_passive_aggressive(x,y,w);
@@ -126,8 +136,8 @@ update_fnc = @(x,y,w) update_passive_aggressive(x,y,w);
 %run perceptron algorithm
 disp(sprintf('TRAINING... \n'))
 [w_avg err] = averaged_perceptron_train(X_train, Y_train, update_fnc, numPasses);
-results.w_const  = w_avg;%Averaged W for constant learning rate 1.0
-results.train_err_const = err;%Error vector for constant learning rate 1.0
+results.w_const  = w_avg; %Averaged W for constant learning rate 1.0
+results.train_err_const = err; %Error vector for constant learning rate 1.0
 results.test_err_const = perceptron_error(X_eval,Y_eval, w_avg);
 disp(['final averaged error:  ', num2str(results.test_err_const)]);
 
@@ -139,10 +149,10 @@ results.train_err_const = err;%Error vector for constant learning rate 1.0
 yhat = perceptron_makepred(X_test, w_avg);
 
 %save model and prediction
-save('w_percep.mat','w_avg');
-save('yhat_perc.mat','yhat');
-
-
-dlmwrite('submit.txt', yhat);
+% save('w_percep.mat','w_avg');
+% save('yhat_perc.mat','yhat');
+% 
+% 
+% dlmwrite('submit.txt', yhat);
 
 
