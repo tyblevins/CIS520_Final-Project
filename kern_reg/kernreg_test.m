@@ -70,10 +70,11 @@ kernMat = exp(-distMat.^2/sigma.^2);
 % Next, replicate the training label matrix to become M x N:
 trainLabels = repmat(trainLabels', numTestPoints, 1);
 % Finally, compute a weighted average over the M rows using the kernel:
-% testLabels = sum(trainLabels.*kernMat,2)./sum(kernMat,2);  %this is regression 
+testLabels = sum(trainLabels.*kernMat,2)./sum(kernMat,2);  %this is regression 
 
 %lets do classification instead
-testLabels = sign(sum(trainLabels.*kernMat,2));
+% testLabels = sign(sum(trainLabels.*kernMat,2));
+
 
 % testLabels = zeros(size(testPoints,1),1);
 % testLabels(sum(trainLabels.*kernMat,2)>0) = +1;  %greater than zero plus 1  

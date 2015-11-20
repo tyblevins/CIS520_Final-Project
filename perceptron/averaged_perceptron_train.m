@@ -21,7 +21,6 @@ function [averaged_w err] = averaged_perceptron_train(X, Y, update_step_fnc, num
 %For your convenience 
 [N,D] = size(X);
 
-N = 500; %minbatch
 %Initialize weights
 w = 0.0001*ones(D,1);
 %Keep a separate running sum of weights from each iteration
@@ -31,17 +30,14 @@ err = zeros(numPasses*N,1);
 
 %%YOUR CODE GOES HERE
 for pass = 1:numPasses
-    
-    
-    X_batch = 
-    
     for i = 1:N
         w = w + update_step_fnc(X(i,:),Y(i),w)*X(i,:)';
         
         averaged_w = mean(w + averaged_w,2);
 %         averaged_w = w./2;
         err((pass-1)*N + i) = perceptron_error(X, Y, averaged_w);
-%         disp(['Error @ Step ' num2str(i) ' = ' err(i*numPasses)])
+%         disp(['Error @ Pass ' num2str(i) ' = ' num2str(err((pass-1)*N + i))])
     end
+        disp(['Error @ Pass ' num2str(pass) ' = ' num2str(err((pass-1)*N + i))])
 end
 averaged_w = averaged_w./(numPasses*N);

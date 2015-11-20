@@ -5,38 +5,67 @@
 % NOTE:
 % This script should be run from folder svm_v1
 
+
 clear;
 
 %% Load in data
-addpath(genpath('CIS520_twitter_data'))
-addpath(genpath('svm'))
+addpath(genpath('..\CIS520_twitter_data'))
 addpath(genpath('CIS520_Final-Project'))
+addpath(genpath('kern_reg'))
 
 disp(sprintf('loading in data........\n'))
-gender_train = dlmread('genders_train.txt');
-% image_raw   = dlmread('images_train.txt');
-% image_feats = dlmread('image_features_train.txt');
-words_train = dlmread('words_train.txt');
-disp(sprintf('Complete! \n'))
 
-%load dictionary
+
+%% TRAIN DATA
+gender_train = dlmread('genders_train.txt');
+% image_raw_train   = dlmread('images_train.txt');
+image_feats_train = dlmread('image_features_train.txt');
+words_train = dlmread('words_train.txt');
+
+%% load dictionary and find stop words
 [rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
 
 %find stop words
-[wordfreq, freqidx] = sort(sum(words_train,1),'descend');
-stopRemove = 40;
+%predefined dictionary
+stop_words  = textread('default_stopVoc.txt','%s','delimiter','\n');
+rmvStop = find(sum(cell2mat(cellfun(@strcmp,repmat(voc,1,length(stop_words))' , repmat(stop_words,1,size(voc,1)),'UniformOutput',0)),1)' == 1);
+voc{rmvStop}   %show the 10 words which have largest effect on 1st pca
+words_train(:,rmvStop) = [];
+notUsed_Idx = (sum(words_train ~= 0,1) <= 10);
+words_train(:,notUsed_Idx) = [];
 
-voc{freqidx(1:stopRemove)}   %show the 10 words which have largest effect on 1st pca
+%most frequent
+% [wordfreq, freqidx] = sort(sum(words_train,1),'descend');
+% stopRemove = 25;
+% rmvStop = freqidx(1:stopRemove);
+% voc{rmvStop}   %show the 10 words which have largest effect on 1st pca
+% words_train(:,rmvStop) = [];
+% notUsed_Idx = (sum(words_train,1) <= 10);
+% words_train(:,notUsed_Idx) = [];
 
-%remove top 50
-words_train(:,freqidx(1:stopRemove)) = [];
+%% TEST DATA
+% image_raw_test   = dlmread('images_test.txt');
+image_feats_test = dlmread('image_features_test.txt');
+words_test = dlmread('words_test.txt');
+
+
+words_test(:,rmvStop) = [];
+words_test(:,notUsed_Idx) = [];
+
+disp(sprintf('Done Loading Data \n'))
 
 %assign feats
 Y = gender_train;
-X = [words_train];
+X = [words_train image_feats_train];
+X_test = [words_test image_feats_test];
 
+%mean center data
+X = X + 2e-13;
+avgX = mean(X,1);
+stdX = std(X)+2e-13;
 
-
+X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
+X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
 
 %% train stuff
 %define x and y's from data above
@@ -46,8 +75,13 @@ trainIdx = 1:numTr;
 evalIdx  = (numTr+1):size(gender_train,1);
 
 %define train set
+Y(Y == 0) = -1;  %change labels to -1/1 for peceptron learning
+
 Y_train = Y(trainIdx,:);
 X_train = X(trainIdx,:);
+
+Y_train = Y(1:1000,:);
+X_train = X(1:1000,:);
 
 %defin evaluation set
 Y_eval = Y(evalIdx,:);
@@ -56,7 +90,7 @@ X_eval = X(evalIdx,:);
 
 %% transform features
 % [coeff,score,latent,tsquared,explained,mu] = pca(X_train,'NumComponents',50);
-[coeff,score,latent] = pca(X_train,'NumComponents',500);
+[coeff,score,latent] = pca([X; X_test],'NumComponents',500);
 
 
 %look at the coef 
@@ -65,23 +99,46 @@ voc{bigidx(1:10)}   %show the 10 words which have largest effect on 1st pca
 
 explainedPC = cumsum(latent)./sum(latent);
 
-%find 90% explained
-%minimum PC to explain 90% variance
-numpc =  find((explainedPC > .90),1);
+% cv solution 56.67%  (ref code in train_decTree.m)
+% percExp = 0.9;
+% numpc =  find((explainedPC > percExp),1);
+numpc =  200;
 
-PC_train = X_train * coeff;
-PC_eval =  X_eval * coeff;
+% PC_train = [ones(size(X_train, 1),1) X_train*coeff];
+% PC_eval =  [ones(size(X_eval, 1),1) X_eval*coeff];
+
+PC_train = [X_train*coeff];
+PC_eval =  [X_eval*coeff];
+
 
 PC_train = PC_train(:, 1:numpc);
 PC_eval =  PC_eval(:, 1:numpc);
 
 
-%%%%%%%%%%%%%%%%%%%%%%%kernels
-kern = @(x,x2) kernel_poly(x, x2, 1);
+k = 1:50;
+acc_Knn = zeros(size(k));
+for i = 1:50
+    
+    mdl = fitcknn(PC_train,Y_train, k(i));
+    yhat_knn = predict(mdl,PC_eval)
+    acc_Knn(i) = sum(Y_eval == yhat_knn)/length(yhat_knn);
 
-tic;
-disp('training model...')
-yhat = kernreg_test(1, PC_train, Y_train, PC_eval);
-toc;
+%     yhat_knn = knnclassify(PC_eval, PC_train, Y_train, k(i));
+%     acc_Knn(i) = sum(Y_eval == yhat_knn)/length(yhat_knn);
+end
+
+plot(k,acc_Knn);
+
+% acc_Knn = sum(Y_eval == yhat_knn)/length(yhat_knn);
+
+%%%%%%%%%%%%%%%%%%%kernels
+% tic;
+% disp('training model...')
+% yhat = kernreg_test(1, PC_train, Y_train, PC_eval,'linf');
+% toc;
+% yhat = sign(yhat);
+% 
+% accKern = sum(Y_eval == yhat)/length(yhat);
+
 
 
