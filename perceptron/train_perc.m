@@ -21,33 +21,35 @@ gender_train = dlmread('genders_train.txt');
 image_feats_train = dlmread('image_features_train.txt');
 words_train = dlmread('words_train.txt');
 
+
+%Load L0 featsel results
+load('knn_vocSel.mat')
+
+
 %% load dictionary and find stop words
 [rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
 
 %find stop words
 %predefined dictionary
 stop_words  = textread('default_stopVoc.txt','%s','delimiter','\n');
+load('knn_vocSel.mat')
 rmvStop = find(sum(cell2mat(cellfun(@strcmp,repmat(voc,1,length(stop_words))' , repmat(stop_words,1,size(voc,1)),'UniformOutput',0)),1)' == 1);
-voc{rmvStop}   %show the 10 words which have largest effect on 1st pca
+% featSel_resultsKNN(rmvStop) = 0;  %add stop words to feature selection results
+
+% voc{rmvStop}   
+% words_train(:,featSel_resultsKNN == 0) = [];
+%find words that are only used by 10 or less users and remove them.
 words_train(:,rmvStop) = [];
 notUsed_Idx = (sum(words_train ~= 0,1) <= 10);
 words_train(:,notUsed_Idx) = [];
 
-%most frequent
-% [wordfreq, freqidx] = sort(sum(words_train,1),'descend');
-% stopRemove = 25;
-% rmvStop = freqidx(1:stopRemove);
-% voc{rmvStop}   %show the 10 words which have largest effect on 1st pca
-% words_train(:,rmvStop) = [];
-% notUsed_Idx = (sum(words_train,1) <= 10);
-% words_train(:,notUsed_Idx) = [];
 
 %% TEST DATA
 % image_raw_test   = dlmread('images_test.txt');
 image_feats_test = dlmread('image_features_test.txt');
 words_test = dlmread('words_test.txt');
 
-
+% words_test(:,featSel_resultsKNN == 0) = [];
 words_test(:,rmvStop) = [];
 words_test(:,notUsed_Idx) = [];
 
@@ -74,18 +76,19 @@ Y = gender_train;
 % X = [words_train image_feats_train K];
 % X_test = [words_test image_feats_test K_test];
 % 
-X = [words_train image_feats_train ];
-X_test = [words_test image_feats_test ];
+X = [words_train image_feats_train];
+X_test = [words_test image_feats_test];
 
 %% standardize data
 X = X + 2e-13;
 avgX = mean(X,1);
-% stdX = std(X)+2e-13;
+stdX = std(X)+2e-13;
 % 
-% X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
-% X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
-X = (X)  -  repmat(avgX,size(X,1),1);
-X_test = ((X_test)  - repmat(avgX,size(X_test,1),1));
+X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
+X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
+
+% X = (X)  -  repmat(avgX,size(X,1),1);
+% X_test = ((X_test)  - repmat(avgX,size(X_test,1),1));
 %% train stuff
 %define x and y's from data above
 numTr = ceil(size(Y,1)*.70);
@@ -126,7 +129,7 @@ X_eval = X(evalIdx,:);
 
 % INSTRUCTIONS: Use the averaged_perceptron_train function to train model
 % using learning rate of 1.0
-numPasses = 12; %Do not change
+numPasses = 2; %Do not change
 
 %choose update func
 update_fnc = @(x,y,w) update_passive_aggressive(x,y,w);
@@ -147,11 +150,13 @@ results.w_const  = w_avg;%Averaged W for constant learning rate 1.0
 results.train_err_const = err;%Error vector for constant learning rate 1.0
 
 yhat = perceptron_makepred(X_test, w_avg);
+yhat_train = perceptron_makepred(X, w_avg);
 
 %save model and prediction
-% save('w_percep.mat','w_avg');
-% save('yhat_perc.mat','yhat');
-% 
+save('w_percep.mat','w_avg');
+save('yhat_perc.mat','yhat');
+save('yhat_percTr.mat','yhat_train');
+
 % 
 % dlmwrite('submit.txt', yhat);
 
