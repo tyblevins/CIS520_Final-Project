@@ -137,7 +137,7 @@ mseStep_lz(1) = lzEst(what_lz{1});
 tic;
 for i = 2:size(X_train,2);
     X_step_knn      = [X_step_knn X_train(:,i)];  %start with the first feature
-    X_step_lz      = [X_step_lz X_train(:,i)];  %start with the first feature
+%     X_step_lz      = [X_step_lz X_train(:,i)];  %start with the first feature
 
     %K-nn loss function
     mdl = fitcknn(X_step_knn,Y_train,'NumNeighbors', k);
@@ -151,16 +151,18 @@ for i = 2:size(X_train,2);
     end
     
     
-    % L0 regression loss
-    lzEst = @(w) sum((Y_train ~= sign(X_step_lz*w)));
-    what_lz{1} = fminsearch(lzEst, ones(1,size(X_step_lz,2))');
-    mseStep_lz(1) = lzEst(what_lz{1});  
-    
-   if(mseStep_lz(i) >= mseStep_lz(i-1))
-        X_step_lz(:,end) = [];  %remove the last feature added
-        numRmv_lz = numRmv_lz + 1;
-        featSel_resultsLZ(i) = 0; %feature removed
-    end
+%     % L0 regression loss
+%     lzEst = @(w) sum((Y_train ~= sign(X_step_lz*w)));
+%     tic;
+%     what_lz{i} = fminsearch(lzEst, ones(1,size(X_step_lz,2))');
+%     lztime = toc
+%     mseStep_lz(i) = lzEst(what_lz{i});  
+%     
+%     if(mseStep_lz(i) >= mseStep_lz(i-1))
+%         X_step_lz(:,end) = [];  %remove the last feature added
+%         numRmv_lz = numRmv_lz + 1;
+%         featSel_resultsLZ(i) = 0; %feature removed
+%     end
 
     disp(['Step: ' num2str(i) '/' num2str(size(X_train,2)) sprintf('\n') ...
         ' featsElim KNN: ' num2str(numRmv_knn) ...
@@ -170,12 +172,96 @@ end
 totTime = toc;
 
 
-wordsKNN = voc{featSel_resultsKNN == 1};
+wordsKNN = voc{featSel_resultsKNN(1:4000) == 1};
 wordsLZ = voc{featSel_resultsLZ == 1};   
 
-save('L0_vocSel.mat','featSel_resultsLZ');
-save('knn_vocSel.mat','featSel_resultsKNN');
+save('L0_vocSelINCOMPLETE.mat','featSel_resultsLZ');
+save('knn_vocSelINCOMPLETE.mat','featSel_resultsKNN');
 
+%% STAGEWISE
+% k = 13;
+% X_step_knn      = X_train(:,1);  %start with the first feature
+% mseStep_knn     = zeros(size(X,2),1);
+% numRmv_knn      = 0;
+% featSel_resultsKNN = ones(size(X_train,2),1);
+% 
+% %K-nn loss function
+% mdl = fitcknn(X_step_knn,Y_train,'NumNeighbors', k);
+% yhat_knn = predict(mdl,X_step_knn);
+% mseStep_knn(1) = sum(Y_train ~= yhat_knn)/length(yhat_knn);
+% 
+% %initialize L0 search
+% X_step_lz         = X_train(:,1);  %start with the first feature
+% mseStep_lz        = zeros(size(X,2),1);
+% what_lz           = zeros(size(X_train,2),1);
+% numRmv_lz         = 0;
+% featSel_resultsLZ = ones(size(X_train,2),1);
+% %calculate the first step prior to loop
+% %first step regression
+% lzEst = @(w) sum((Y_train ~= sign(X_step_lz*w)));
+% what_lz(1) = fminsearch(lzEst, ones(1,size(X_step_lz,2))');
+% mseStep_lz(1) = sum(Y_train ~= sign(X_train*what_lz));    
+% 
+% %L2-error regression search loss function
+% % what_lz{1} = mldivide((X_step'*X_step),(X_step'*Y_train));
+% 
+% r_lz = Y_train - X_train*what_lz;
+% 
+% tic;
+% for i = 2:size(X_train,2);
+% 
+%     X_step_lz      = [X_step_lz X_train(:,i)];  %start with the first feature
+% 
+%    
+%     if(size(X_step_knn,2) > 1000)  %limit number of features for speed
+%         X_step_knn(1,:) = [] ;
+%     end
+%     X_step_knn      = [X_step_knn X_train(:,i)];  %start with the first feature
+%     
+%     %K-nn loss function
+%     mdl = fitcknn(X_step_knn,Y_train,'NumNeighbors', k);
+%     yhat_knn = predict(mdl,X_step_knn);
+%     mseStep_knn(i) = sum(Y_train ~= yhat_knn)/length(yhat_knn);
+%     
+%     if(mseStep_knn(i) >= mseStep_knn(i-1))
+%         X_step_knn(:,end) = [];  %remove the last feature added
+%         numRmv_knn = numRmv_knn + 1;
+%         featSel_resultsKNN(i) = 0; %feature removed
+%     end
+%     
+%     
+%     % L0 regression loss
+%     lzEst = @(w) sum((r_lz - (X_train(:,i)*w)));
+%     what_lz(i) = fminsearch(lzEst, 1);
+%     mseStep_lz(i) = sum(Y_train ~= sign(X_train*what_lz));  
+%     
+%     if(mseStep_lz(i) >= mseStep_lz(i-1))
+% %         X_step_lz(:,end) = [];  %remove the last feature added
+%         numRmv_lz = numRmv_lz + 1;
+%         featSel_resultsLZ(i) = 0; %feature removed
+%         
+%         %keep residual the same
+%     else
+%         %update residual
+%         r_lz   = Y_train  - X_train*what_lz; 
+% 
+%     end
+%     
+%     
+% 
+%     disp(['Step: ' num2str(i) '/' num2str(size(X_train,2)) sprintf('\n') ...
+%         ' featsElim KNN: ' num2str(numRmv_knn) ...
+%         ' featsElim L0: ' num2str(numRmv_lz) sprintf('\n')])
+% 
+% end
+% totTime = toc;
+% 
+% 
+% wordsKNN = voc{featSel_resultsKNN(1:4000) == 1};
+% wordsLZ = voc{featSel_resultsLZ == 1};   
+% 
+% save('L0_vocSel.mat','featSel_resultsLZ');
+% save('knn_vocSel.mat','featSel_resultsKNN');
 
 %% DIM RED WITH PCA
 % [coeff,score,latent] = pca(X,'NumComponents',500);

@@ -21,18 +21,26 @@ gender_train = dlmread('genders_train.txt');
 image_feats_train = dlmread('image_features_train.txt');
 words_train = dlmread('words_train.txt');
 
+
+%Load L0 featsel results
+load('knn_vocSel.mat')
+
+
 %% load dictionary and find stop words
 [rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
 
 %find stop words
 %predefined dictionary
 stop_words  = textread('default_stopVoc.txt','%s','delimiter','\n');
+load('knn_vocSel.mat')
 rmvStop = find(sum(cell2mat(cellfun(@strcmp,repmat(voc,1,length(stop_words))' , repmat(stop_words,1,size(voc,1)),'UniformOutput',0)),1)' == 1);
+featSel_resultsKNN(rmvStop) = 0;  %add stop words to feature selection results
+
 % voc{rmvStop}   
-words_train(:,rmvStop) = [];
+% words_train(:,featSel_resultsKNN == 0) = [];
 %find words that are only used by 10 or less users and remove them.
 notUsed_Idx = (sum(words_train ~= 0,1) <= 10);
-words_train(:,notUsed_Idx) = [];
+% words_train(:,notUsed_Idx) = [];
 
 %remove words that are used similarly between males and females
 % I think this overfits
@@ -59,9 +67,8 @@ words_train(:,notUsed_Idx) = [];
 image_feats_test = dlmread('image_features_test.txt');
 words_test = dlmread('words_test.txt');
 
-
-words_test(:,rmvStop) = [];
-words_test(:,notUsed_Idx) = [];
+% words_test(:,featSel_resultsKNN == 0) = [];
+% words_test(:,notUsed_Idx) = [];
 
 disp(sprintf('Done Loading Data \n'))
 
@@ -72,12 +79,15 @@ X = [words_train image_feats_train];
 X_test = [words_test image_feats_test];
 
 %mean center data
-X = X + 2e-13;
-avgX = mean(X,1);
-stdX = std(X)+2e-13;
+% X = X + 2e-13;
+% avgX = mean(X,1);
+% % stdX = std(X)+2e-13;
+% X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
+% X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
 
-X = bsxfun(@rdivide ,((X)  - repmat(avgX,size(X,1),1)), stdX);
-X_test = bsxfun(@rdivide ,((X_test)  - repmat(avgX,size(X_test,1),1)), stdX);
+%mean center only
+% X = ((X)  - repmat(avgX,size(X,1),1));
+% X_test = ((X_test)  - repmat(avgX,size(X_test,1),1));
 
 % X = X + 0.01.*normrnd(0,1,size(X));  %add noise
 
@@ -99,21 +109,21 @@ X_eval = X(evalIdx,:);
 
 %% transform features
 % [coeff,score,latent,tsquared,explained,mu] = pca(X_train,'NumComponents',50);
-[coeff,score,latent] = pca([X; X_test],'NumComponents',500);  %use test and train for PCA
-% [coeff,score,latent] = pca([X],'NumComponents',1500);
-
-
-%look at the coef 
-[bigvalues, bigidx] = sort(abs(coeff(1:size(words_train,2),1)), 'descend');
-voc{bigidx(1:10)}   %show the 10 words which have largest effect on 1st pca
-
-explainedPC = cumsum(latent)./sum(latent);
+% [coeff,score,latent] = pca([X; X_test],'NumComponents',500);  %use test and train for PCA
+% % [coeff,score,latent] = pca([X],'NumComponents',1500);
+% 
+% 
+% %look at the coe12f 
+% [bigvalues, bigidx] = sort(abs(coeff(1:size(words_train,2),2)), 'descend');
+% voc{bigidx(1:10)}   %show the 10 words which have largest effect on 1st pca
+% 
+% explainedPC = cumsum(latent)./sum(latent);
 
 
 %% CV to find number of pc to use
 % PC = [ones(size(X, 1),1) X*coeff];
 % numParam = 10;
-% pc_CV = (linspace(0.3,0.7,numParam));  %10 different values
+% pc_CV = (linspace(0.9,1,numParam));  %10 different values
 % numFolds = 10;
 % cvIdx = crossvalind('Kfold', length(Y_train), numFolds);
 % 
@@ -151,28 +161,28 @@ explainedPC = cumsum(latent)./sum(latent);
 
 %%
 % cv solution 5667%
-percExp = 0.5667;
-numpc =  find((explainedPC > percExp),1);
-
+% percExp = 0.90;
+% numpc =  find((explainedPC > percExp),1);
 % 
-% PC_train = [ones(size(X_train, 1),1) X_train*coeff];
-% PC_eval =  [ones(size(X_eval, 1),1) X_eval*coeff];
-PC_train = [X_train*coeff];
-PC_eval =  [X_eval*coeff];
-PC = X*coeff;
-
-PC_train = PC_train(:, 1:numpc);
-PC_eval =  PC_eval(:, 1:numpc);
-PC = PC_eval(:, 1:numpc);
-
-%visualize
-figure(2)
-plot(PC_train(Y_train == 0,3),PC_train(Y_train == 0,4),'r*','markersize',5)
-hold on;
-plot(PC_train(Y_train == 1,3),PC_train(Y_train == 1,4),'bo','markersize',5)
-legend('Male','Female')
-xlabel('PC1')
-ylabel('PC2')
+% % 
+% % PC_train = [ones(size(X_train, 1),1) X_train*coeff];
+% % PC_eval =  [ones(size(X_eval, 1),1) X_eval*coeff];
+% PC_train = [X_train*coeff];
+% PC_eval =  [X_eval*coeff];
+% PC = X*coeff;
+% 
+% PC_train = PC_train(:, 1:numpc);
+% PC_eval =  PC_eval(:, 1:numpc);
+% PC = PC(:, 1:numpc);
+% 
+% %visualize
+% figure(2)
+% plot(PC_train(Y_train == 0,2),PC_train(Y_train == 0,3),'r*','markersize',5)
+% hold on;
+% plot(PC_train(Y_train == 1,2),PC_train(Y_train == 1,3),'bo','markersize',5)
+% legend('Male','Female')
+% xlabel('PC1')
+% ylabel('PC2')
 
 
 %% Cross-validation on train set to determin minleaf
@@ -193,9 +203,9 @@ ylabel('PC2')
 %%%%%%%%%%%%%%%%%%%%%%%%% DEC TREE EVAL
 tic;
 % mod = TreeBagger(500,PC_train,Y_train,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5,'NVarToSample',64);
-mod = TreeBagger(500,PC_train,Y_train,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5);
+mod = TreeBagger(500,X_train,Y_train,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5);
 toc;
-yhat = str2num(cell2mat(predict(mod,PC_eval)));
+yhat = str2num(cell2mat(predict(mod,X_eval)));
 
 acc = sum(Y_eval == yhat)/length(yhat);
 
@@ -204,7 +214,7 @@ acc = sum(Y_eval == yhat)/length(yhat);
 %train with all data
 tic;
 % mod = TreeBagger(500,PC_train,Y_train,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5,'NVarToSample',64);
-mod = TreeBagger(500,PC_train,Y_train,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5);
+mod = TreeBagger(1000,PC,Y,'Method','classification','OOBPred','On','MinLeaf',10,'FBoot',0.5);
 toc;
 
 
