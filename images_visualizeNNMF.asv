@@ -4,15 +4,26 @@
 
 addpath(genpath('../CIS520_twitter_data'))
 addpath(genpath('CIS520_Final-Project'))
+addpath(genpath('images'))
 
 gender_train = dlmread('genders_train.txt');
-image_raw   = dlmread('images_train.txt');
-image_feats = dlmread('image_features_train.txt');
+img_X   = dlmread('images_train.txt');
+img_XTest = dlmread('image_features_train.txt');
 % words_train = dlmread('words_train.txt');
 
 %load dictionary
 [rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
 
+grayRaw = zeros(size(gender_train,1),300,300);
+for i=1:size(img_X,1)
+  cur_row=img_X(i,:);
+  cur_img=reshape(cur_row,[100 100 3]);
+  
+  grayRaw = rgb2gray
+  
+  imshow(uint8(cur_img));
+  pause(3);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %calculate non-negative matrix factorization
@@ -20,8 +31,8 @@ image_feats = dlmread('image_features_train.txt');
 
 %reconstruct images look at the frist one
 imgIdx = 1;
-for i = [100]
-    image_rec = (W(:,i)* H(i:i+19,:));
+for i = [20]
+    image_rec = (W(imgIdx,1:i)*H(1:i,:));
     cur_row = image_rec(imgIdx,:);
     cur_img=reshape(cur_row,[100 100 3]);
     imshow(uint8(cur_img));

@@ -1,40 +1,19 @@
 %Read in training data to workspace
 %Jared Wilson
 %11/17/2015
-clear;
-close all;
-
 
 addpath(genpath('../CIS520_twitter_data'))
 addpath(genpath('CIS520_Final-Project'))
-addpath(genpath('images'))
 
 gender_train = dlmread('genders_train.txt');
-img_X   = dlmread('images_train.txt');
-img_XTest = dlmread('image_features_train.txt');
+image_raw   = dlmread('images_train.txt');
+image_feats = dlmread('image_features_train.txt');
 % words_train = dlmread('words_train.txt');
 
 %load dictionary
-% [rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
-
-grayRaw = zeros(size(gender_train,1),100,100);
-for i=1:size(img_X,1)
-  cur_row=img_X(i,:);
-  cur_img=reshape(cur_row,[100 100 3]);
-  
+[rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
 
 
-%   [face_a,skin_region]=face(cur_img);
-%   imshow(uint8(face_a));
-
-    grayRaw(i,:,:) = rgb2gray(uint8(cur_img));
-      % run the detector
-    pos = fdlibmex(squeeze(grayRaw(i,:,:)));
-
-%   imshow(uint8(squeeze(grayRaw(i,:,:))));
-  pause(3);
-end
-[face_a,skin_region]=face(I);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %calculate non-negative matrix factorization
 [W,H] = nnmf(image_raw,100);
