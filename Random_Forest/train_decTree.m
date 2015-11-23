@@ -121,43 +121,43 @@ X_eval = X(evalIdx,:);
 
 
 %% CV to find number of pc to use
-PC = [ones(size(X, 1),1) X*coeff];
-numParam = 10;
-pc_CV = (linspace(0.8,1,numParam));  %10 different values
-numFolds = 10;
-cvIdx = crossvalind('Kfold', length(Y_train), numFolds);
-
-cvAcc = zeros(numFolds,numParam);
-
-disp(sprintf('starting CV........\n'))
-parfor expIdx = 1:numel(pc_CV)
-    for cv = 1:numFolds
-        numpc =  find((explainedPC > pc_CV(expIdx)),1);
-        tmpPC = PC(:, 1:numpc);
-        PC_fold     = tmpPC(cvIdx ~= cv,:);
-        Y_fold      = Y(cvIdx ~= cv);
-        PC_foldEval = tmpPC(cvIdx == cv,:);
-        Y_foldEval  = Y(cvIdx == cv);
-        tic;
-        mod = TreeBagger(250,PC_fold,Y_fold,'Method','classification','OOBPred','On','MinLeaf',1,'FBoot',0.5);
-        toc;
-        yhat = str2num(cell2mat(predict(mod,PC_foldEval)));
-        
-        
-        cvAcc(cv,expIdx) = sum(Y_foldEval == yhat)/length(yhat);
-        disp(['Progress: Parameter - ' num2str(expIdx) '/' num2str(numParam) ...
-            ' Fold - ' num2str(cv) '/' num2str(numFolds) sprintf('\n')])
-
-    end
-end
-
-parAcc = mean(cvAcc,1);
-[~, bestIdx] = max(parAcc);
-
-figure(1)
-plot(pc_CV,parAcc);
-
-percExp = pc_CV(bestIdx);
+% PC = [ones(size(X, 1),1) X*coeff];
+% numParam = 10;
+% pc_CV = (linspace(0.8,1,numParam));  %10 different values
+% numFolds = 10;
+% cvIdx = crossvalind('Kfold', length(Y_train), numFolds);
+% 
+% cvAcc = zeros(numFolds,numParam);
+% 
+% disp(sprintf('starting CV........\n'))
+% parfor expIdx = 1:numel(pc_CV)
+%     for cv = 1:numFolds
+%         numpc =  find((explainedPC > pc_CV(expIdx)),1);
+%         tmpPC = PC(:, 1:numpc);
+%         PC_fold     = tmpPC(cvIdx ~= cv,:);
+%         Y_fold      = Y(cvIdx ~= cv);
+%         PC_foldEval = tmpPC(cvIdx == cv,:);
+%         Y_foldEval  = Y(cvIdx == cv);
+%         tic;
+%         mod = TreeBagger(250,PC_fold,Y_fold,'Method','classification','OOBPred','On','MinLeaf',1,'FBoot',0.5);
+%         toc;
+%         yhat = str2num(cell2mat(predict(mod,PC_foldEval)));
+%         
+%         
+%         cvAcc(cv,expIdx) = sum(Y_foldEval == yhat)/length(yhat);
+%         disp(['Progress: Parameter - ' num2str(expIdx) '/' num2str(numParam) ...
+%             ' Fold - ' num2str(cv) '/' num2str(numFolds) sprintf('\n')])
+% 
+%     end
+% end
+% 
+% parAcc = mean(cvAcc,1);
+% [~, bestIdx] = max(parAcc);
+% 
+% figure(1)
+% plot(pc_CV,parAcc);
+% 
+% percExp = pc_CV(bestIdx);
 
 %%
 % cv solution 5667%
