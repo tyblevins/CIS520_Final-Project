@@ -33,15 +33,6 @@ for i=1:size(img_X,1)
   cur_img=reshape(cur_row,[100 100 3]);
   
 
-% FACE FIND STUFF -- takes too long
-%     [face_a,skin_region]=face(cur_img);
-%     imshow(uint8(face_a));
-
-%     if(sum(sum(any(face_a))))
-%         grayRaw(i,:,:) = rgb2gray(uint8(face_a));
-%     else
-%         grayRaw(i,:,:) = rgb2gray(uint8(cur_img));
-%     end
 %     
         grayRaw(i,:,:) = rgb2gray(uint8(cur_img));
 
@@ -59,6 +50,8 @@ for i = 1:size(grayAvg,1)
     end
 end
 imshow(uint8(grayAvg));
+
+
 
 
 

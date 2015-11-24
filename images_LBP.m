@@ -25,6 +25,10 @@ imgAvg = mean(img_X,1);
 
 grayRaw = zeros(size(img_X,1),100,100);
 
+cellSize = 15;
+numCells = floor(size(I)/cellSize);
+lbpFeatures = zeros(size(img_X,1),numCells);
+
 Y = gender_train;
 Y(Y == 0) = -1;  %change labels to -1/1 for peceptron learning
 
@@ -33,17 +37,9 @@ for i=1:size(img_X,1)
   cur_img=reshape(cur_row,[100 100 3]);
   
 
-% FACE FIND STUFF -- takes too long
-%     [face_a,skin_region]=face(cur_img);
-%     imshow(uint8(face_a));
-
-%     if(sum(sum(any(face_a))))
-%         grayRaw(i,:,:) = rgb2gray(uint8(face_a));
-%     else
-%         grayRaw(i,:,:) = rgb2gray(uint8(cur_img));
-%     end
 %     
         grayRaw(i,:,:) = rgb2gray(uint8(cur_img));
+        lbpFeatures = extractLBPFeatures(I,'CellSize',[32 32],'Normalization','None');
 
 %     imshow(uint8(squeeze(grayRaw(i,:,:))));
 %     disp(num2str(i))
@@ -59,7 +55,6 @@ for i = 1:size(grayAvg,1)
     end
 end
 imshow(uint8(grayAvg));
-
 
 
 %remove mean from each picture then flatten
