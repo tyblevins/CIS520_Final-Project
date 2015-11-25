@@ -5,7 +5,7 @@ function [ dbn ] = rbm( train_x )
     %train dbn
     dbn.sizes = [200];
     opts.numepochs =   50;
-    opts.batchsize = 100;
+    opts.batchsize =  100;
     opts.momentum  =   0;
     opts.alpha     =   1;
     dbn = dbnsetup(dbn, train_x, opts);

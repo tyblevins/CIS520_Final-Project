@@ -1,20 +1,40 @@
 clear
 clc
 
-addpath(genpath('CIS520_twitter_data'))
+addpath(genpath('..\CIS520_twitter_data'))
 addpath(genpath('CIS520_Final-Project'))
+addpath(genpath('autoencoder'))
+addpath(genpath('tools'))
 
 % load in data
-image_raw_train = dlmread('images_train.txt');
-image_raw_test = dlmread('images_test.txt');
+% image_raw_train = dlmread('images_train.txt');
+% image_raw_test = dlmread('images_test.txt');
+
+gender_train = dlmread('genders_train.txt');
+words_train = dlmread('words_train.txt');
+words_test = dlmread('words_test.txt');
+
+
+
+Y = gender_train;
+Y(Y == 0) = -1;
+
+train_x = words_train./max(words_train(:));
+test_x   = words_test./max(words_test(:)); 
 
 %% auto encoder
 addpath('./DL_toolbox/util','./DL_toolbox/NN','./DL_toolbox/DBN');
 
-train_x = image_raw_train/255;
-test_x  = image_raw_test/255;
+% train_x = image_raw_train/255;
+% test_x  = image_raw_test/255;
+
+
 [ dbn ] = rbm( train_x );
 [ new_feat, new_feat_test ] = newFeature_rbm( dbn,train_x,test_x );
+
+tic
+cv_acc =  svmtrain(Y, new_feat, sprintf('-t 0 -c 1 -v 5'));
+toc;
 
 
 %% logistic 

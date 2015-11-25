@@ -108,34 +108,37 @@ X_eval = X(evalIdx,:);
 
 %%%%%%%%%%%%%%%%%%%%%%%%% SVM CROSS VALIDATION
 %# grid of parameters
-% folds = 5;
-% [C,gamma] = meshgrid(-8:2:2, -8:2:2);
-% 
-% %# grid search, and cross-validation
-% cv_acc = zeros(numel(C),1);
-% parfor i=1:numel(C)
-%     cv_acc(i) = svmtrain(Y_train, X_train, ...
-%                     sprintf('-c %f -g %f -v %d', 2^C(i), 2^gamma(i), folds));
-% end
-% 
-% %# pair (C,gamma) with best accuracy
-% [~,idx] = max(cv_acc);
-% 
-% %# contour plot of paramter selection
-% contour(C, gamma, reshape(cv_acc,size(C))), colorbar
-% hold on
-% plot(C(idx), gamma(idx), 'rx')
-% text(C(idx), gamma(idx), sprintf('Acc = %.2f %%',cv_acc(idx)), ...
-%     'HorizontalAlign','left', 'VerticalAlign','top')
-% hold off
-% xlabel('log_2(C)'), ylabel('log_2(\gamma)'), title('Cross-Validation Accuracy')
-% 
+folds = 5;
+[C,gamma] = meshgrid(2:2:6,-15:1:-10);
+
+%# grid search, and cross-validation
+cv_acc = zeros(numel(C),1);
+parfor i=1:numel(C)
+    cv_acc(i) = svmtrain(Y_train, X_train, ...
+                    sprintf('-t 2 -c %f -g %f -e 0.001 -v %d', 2^C(i), 2^gamma(i), folds));
+end
+
+%# pair (C,gamma) with best accuracy
+[~,idx] = max(cv_acc);
+
+%# contour plot of paramter selection
+contour(C, gamma, reshape(cv_acc,size(C))), colorbar
+hold on
+plot(C(idx), gamma(idx), 'rx')
+text(C(idx), gamma(idx), sprintf('Acc = %.2f %%',cv_acc(idx)), ...
+    'HorizontalAlign','left', 'VerticalAlign','top')
+hold off
+xlabel('log_2(C)'), ylabel('log_2(\gamma)'), title('Cross-Validation Accuracy')
+
 
 tic
-cv_acc =  svmtrain(Y_train, X_train, sprintf('-t 0 -c 0.001 -v 5'));
+cv_accTest =  svmtrain(Y_train, X_train, sprintf('-t 2 -c 16 -e 0.001 -g 0.000030518 -h 1 -v 5'));
 toc;
+
+
+
 % Train and evaluate SVM classifier using libsvm
-model = svmtrain(Y_train, X_train, sprintf('-t 0 -c 0.001'));
+model = svmtrain(Y_train, X_train, sprintf('-t 2 -c 16 -e 0.001 -g 0.000030518'));
 % model = svmtrain(Y_train, X_train, sprintf('-t 2 -c 1 -g 0.00005'));
 % model = svmtrain(Y_train, X_train, sprintf('-t 1'));
 [yhat acc vals] = svmpredict(Y_eval, X_eval, model);
@@ -143,14 +146,14 @@ test_acc = mean(yhat==Y_eval)
 
 
 %train the full model
-model = svmtrain(Y, X, sprintf('-t 0 -c 0.001 -h 1'));
+model = svmtrain(Y, X, sprintf('-t 2 -c 16 -e 0.001 -g 0.000030518'));
 
 [yhat acc vals] = svmpredict(ones(size(X_test,1),1), X_test, model);
 [yhat_train train_acc vals] = svmpredict(Y, X, model);
 
 
 %save model and prediction
-% save('svm_mod.mat','model');
-% save('yhat_svm.mat','yhat');
-% save('yhat_svmTr.mat','yhat_train');
+save('svm_mod.mat','model');
+save('yhat_svm.mat','yhat');
+save('yhat_svmTr.mat','yhat_train');
 

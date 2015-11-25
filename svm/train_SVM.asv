@@ -109,13 +109,13 @@ X_eval = X(evalIdx,:);
 %%%%%%%%%%%%%%%%%%%%%%%%% SVM CROSS VALIDATION
 %# grid of parameters
 folds = 5;
-[C,gamma] = meshgrid(-8:2:15, -15:2:3);
+[C,gamma] = meshgrid(2:2:6,-15:1:-10);
 
 %# grid search, and cross-validation
 cv_acc = zeros(numel(C),1);
-for i=1:numel(C)
-    cv_acc(i) = svmtrain(Y, X, ...
-                    sprintf('-c %f -g %f -v %d', 2^C(i), 2^gamma(i), folds));
+parfor i=1:numel(C)
+    cv_acc(i) = svmtrain(Y_train, X_train, ...
+                    sprintf('-t 2 -c %f -g %f -e 0.001 -v %d', 2^C(i), 2^gamma(i), folds));
 end
 
 %# pair (C,gamma) with best accuracy
@@ -131,10 +131,14 @@ hold off
 xlabel('log_2(C)'), ylabel('log_2(\gamma)'), title('Cross-Validation Accuracy')
 
 
+tic
+cv_accTest =  svmtrain(Y_train, X_train, sprintf('-t 2 -c 16 -e 0.001 -g 0.000030518 -v 5'));
+toc;
+
 
 
 % Train and evaluate SVM classifier using libsvm
-model = svmtrain(Y_train, X_train, sprintf('-t 0 -c 0.001 -h 1'));
+model = svmtrain(Y_train, X_train, sprintf('-t 0 -c 0.001'));
 % model = svmtrain(Y_train, X_train, sprintf('-t 2 -c 1 -g 0.00005'));
 % model = svmtrain(Y_train, X_train, sprintf('-t 1'));
 [yhat acc vals] = svmpredict(Y_eval, X_eval, model);
