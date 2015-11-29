@@ -8,6 +8,7 @@ addpath(genpath('CIS520_Final-Project'))
 gender_train = dlmread('genders_train.txt');
 image_raw   = dlmread('images_train.txt');
 image_feats = dlmread('image_features_train.txt');
+image_raw_test = dlmread('images_test.txt');
 % words_train = dlmread('words_train.txt');
 
 %load dictionary
@@ -18,11 +19,14 @@ image_feats = dlmread('image_features_train.txt');
 %calculate non-negative matrix factorization
 [W,H] = nnmf(image_raw,100);
 
+tic
+[Wtest,Htest] = nnmf(image_raw_test,100,'h0',H);
+nnmfTime = toc
 %reconstruct images look at the frist one
-imgIdx = 1;
-for i = [20]
-    image_rec = (W(imgIdx,1:i)*H(1:i,:));
-    cur_row = image_rec(imgIdx,:);
+imgIdx = 10;
+for i = 50
+    image_rec = (W(imgIdx,40:i)*H(40:i,:));
+    cur_row = image_rec(:);
     cur_img=reshape(cur_row,[100 100 3]);
     imshow(uint8(cur_img));
     pause(1);

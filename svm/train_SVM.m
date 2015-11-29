@@ -136,7 +136,6 @@ cv_accTest =  svmtrain(Y_train, X_train, sprintf('-t 2 -c 16 -e 0.001 -g 0.00003
 toc;
 
 
-
 % Train and evaluate SVM classifier using libsvm
 model = svmtrain(Y_train, X_train, sprintf('-t 2 -c 16 -e 0.001 -g 0.000030518'));
 % model = svmtrain(Y_train, X_train, sprintf('-t 2 -c 1 -g 0.00005'));

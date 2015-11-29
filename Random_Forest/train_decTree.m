@@ -109,7 +109,7 @@ X_eval = X(evalIdx,:);
 
 %% transform features
 % [coeff,score,latent,tsquared,explained,mu] = pca(X_train,'NumComponents',50);
-[coeff,score,latent] = pca([X; X_test]);  %use test and train for PCA
+% [coeff,score,latent] = pca([X; X_test]);  %use test and train for PCA
 % % [coeff,score,latent] = pca([X],'NumComponents',1500);
 % 
 % 

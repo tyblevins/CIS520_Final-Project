@@ -1,17 +1,14 @@
 %Read in training data to workspace
 %Jared Wilson
 %11/17/2015
+clear
 
 addpath(genpath('../CIS520_twitter_data'))
 addpath(genpath('CIS520_Final-Project'))
 
 gender_train = dlmread('genders_train.txt');
-image_raw   = dlmread('images_train.txt');
-image_feats = dlmread('image_features_train.txt');
-% words_train = dlmread('words_train.txt');
-
-%load dictionary
-[rank, voc] = textread('voc-top-5000.txt','%u %s','delimiter','\n');
+image_raw_train   = dlmread('images_train.txt');
+image_raw_test = dlmread('images_test.txt');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,14 +24,15 @@ image_feats = dlmread('image_features_train.txt');
 % X0 = reshape(faces, prod([numrows, numcols]), numfaces);
 % X0 = X0';
 
-X0 = image_raw;
+X0 = [image_raw_train; image_raw_test];
 % Subtract the mean value of each feature
 mu = mean(X0,1);
 X = bsxfun(@minus, X0, mu);
 
 % Get the eigenvectors
-npca = 20;
-V = pca(X, npca);
+npca = 1000;
+V = pca(X, 'NumComponents',npca);
+
 
 % Plot the eigenvectors as eigenfaces
 colormap gray
