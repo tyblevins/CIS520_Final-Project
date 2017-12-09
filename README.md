@@ -1,13 +1,13 @@
 # CIS520_Final-Project
 Machine Learning Final Project
 
-##Overview
+## Overview
 
 For this project, you will be developing a system for predicting someone’s gender (male/female) from the language of their tweets and the image they post with their twitter profile. You will be given a training dataset of 5,000 labeled training samples and tested on around 5,000 testing samples. The features of the dataset are described in more detail in the slides.
 The format of the project is a competition, with live leaderboards (see below for more details).
 Project Rules and Requirements
 
-##Rules and Policies
+## Rules and Policies
 
 You CANNOT download or harvest any additional training data from the internet. Both of these will be considered cheating and the penalty will be very harsh. Please, you MUST ONLY use the data we provide you with. We will test your final classifier, and if it is clear that we cannot replicate your performance because you use additional data, you will get a ZERO for the project.
 Except when specified otherwise, you are allowed to download additional code or toolboxes from the internet, however, you must cite everything you use in your final project report. We don’t want you to reinvent the wheel. If you’re unsure of what extra resources are allowed, please ask us.
@@ -35,9 +35,9 @@ The project is broken down into a series of checkpoints. There are four mandator
 
 - Extra credit - In the competition, placing well will increase your project grade. First place gets 10%, second 8%, third 7%, and the rest of the top 10 teams 5% extra added to the project grade.
 
-#Evaluation
+# Evaluation
 
-##Error metric
+## Error metric
 
 Your predictions will be evaluated based on their L_0 Err. I.e. the number of predictions you get wrong. Your code should produce an Nx1 vector of predictions, each of which is 0 or 1.
 Requirements for Each Checkpoint
